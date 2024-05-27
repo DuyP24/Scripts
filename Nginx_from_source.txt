@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Update and Install Development Tools
+yum group install -y "Development Tools"
+
+# Download Latest Stable Nginx
+wget http://nginx.org/download/nginx-1.25.5.tar.gz
+
+# Extract the Archive
+tar xvf nginx-latest.tar.gz
+
+# Move to Extracted Directory
+cd nginx-1.25.5.tar.gz  # Use * expansion to handle different versions
+
+# Configure Nginx
+./configure \
+  --prefix=/opt/nginx \
+  --sbin-path=/opt/nginx/sbin/nginx \
+  --conf-path=/opt/nginx/conf/nginx.conf \
+  --with-http_ssl_module \
+  --with-http_realip_module
+
+# Compile and Install
+make
+make install
+
+# Verify Installation
+/opt/nginx/sbin/nginx -v
+
+# Start Nginx
+/opt/nginx/sbin/nginx
+
+# Firewall Configuration (Adjust ports as needed)
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp  
+sudo firewall-cmd --reload
