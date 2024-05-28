@@ -1,0 +1,57 @@
+
+#!/bin/bash
+
+# Define log file path 
+LOG_FILE="/var/log/nginx_install.log"
+
+# Function to log and potentially echo success message
+function log_and_echo_success() {
+  command "$@" 2>> $LOG_FILE  # Redirect stderr to log file
+  if [[ $? -ne 0 ]]; then
+    echo "Failed: $@" >> $LOG_FILE
+    echo "Failed: $@" 
+    exit 1
+  fi
+  # Optionally echo success message
+    echo "Success: $@"
+}
+
+# Update and Install Development Tools
+log_and_echo_success yum group install -y "Development Tools"
+
+# Download Latest Stable Nginx
+log_and_echo_success wget http://nginx.org/download/nginx-1.25.5.tar.gz
+# Extract the Archive
+log_and_echo_success tar xvf nginx-1.25.5.tar.gz
+
+# Move to Extracted Directory (use version specific name)
+cd nginx-1.25.5
+
+# Configure Nginx
+log_and_echo_success ./configure \
+  --prefix=/opt/nginx \
+  --sbin-path=/opt/nginx/sbin/nginx \
+  --conf-path=/opt/nginx/conf/nginx.conf \
+  --with-http_ssl_module \
+  --with-http_realip_module
+
+# Compile and Install
+log_and_echo_success make
+log_and_echo_success make install
+
+# Verify Installation
+log_and_echo_success /opt/nginx/sbin/nginx -v
+
+# Start Nginx
+log_and_echo_success /opt/nginx/sbin/nginx
+
+# Firewall Configuration (Adjust ports as needed)
+log_and_echo_success firewall-cmd --permanent --add-port=80/tcp
+log_and_echo_success firewall-cmd --permanent --add-port=443/tcp
+log_and_echo_success firewall-cmd --reload
+echo "Firewall configured (ports 80 and 443)" 
+echo "Firewall configured (ports 80 and 443)" >> $LOG_FILE
+
+
+# Optionally display a final success message at the end
+echo "Nginx installation successful! Check the log file for details: $LOG_FILE"
